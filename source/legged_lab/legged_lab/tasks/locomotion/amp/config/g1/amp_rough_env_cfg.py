@@ -173,6 +173,15 @@ class G1AmpRewards():
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["(?!.*ankle.*).*"]),
         },
     )
+    
+    stand_still = RewTerm(
+        func=mdp.stand_still_joint_deviation_l1,
+        weight=-0.5, 
+        params={
+            "command_name": "base_velocity", 
+            "command_threshold": 0.06
+        }
+    )
 
 @configclass
 class G1WalkMotionDataCfg(MotionDataCfg):
@@ -191,7 +200,8 @@ class G1WalkMotionDataCfg(MotionDataCfg):
             "B15_-__Walk_turn_around_stageii": 1.0, 
             "B22_-__side_step_left_stageii": 1.0, 
             "B23_-__side_step_right_stageii": 1.0, 
-            "B4_-_Stand_to_Walk_backwards_stageii": 1.0,
+            # "B4_-_Stand_to_Walk_backwards_stageii": 1.0,
+            "walk3_subject1_cut_1400_1900": 1.0, # from lafan1 dataset
         },
         dof_names=MOTIONDATA_DOF_NAMES,
         key_links_mapping={
@@ -294,8 +304,8 @@ class G1AmpRoughEnvCfg(LocomotionAmpEnvCfg):
         # ------------------------------------------------------
         # Events
         # ------------------------------------------------------
-        self.events.add_base_mass.params["asset_cfg"].body_names = "waist_yaw_link"
-        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["waist_yaw_link"]
+        self.events.add_base_mass.params["asset_cfg"].body_names = "torso_link"
+        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["torso_link"]
         
         # ------------------------------------------------------
         # Rewards

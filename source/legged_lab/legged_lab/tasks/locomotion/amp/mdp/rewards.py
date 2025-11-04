@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 from typing import TYPE_CHECKING
 
+from isaaclab.envs import mdp
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor
 from isaaclab.assets import RigidObject
@@ -35,3 +36,10 @@ def feet_orientation_l2(env: ManagerBasedRLEnv,
     
     return torch.sum(feet_proj_g_xy_square * in_contact, dim=-1)  # shape: (N, )
     
+def stand_still_joint_deviation_l1(
+    env: ManagerBasedRLEnv, command_name: str, command_threshold: float = 0.06, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalize offsets from the default joint positions when the command is very small."""
+    command = env.command_manager.get_command(command_name)
+    # Penalize motion when command is nearly zero.
+    return mdp.joint_deviation_l1(env, asset_cfg) * (torch.norm(command[:, :2], dim=1) < command_threshold)

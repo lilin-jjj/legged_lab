@@ -76,12 +76,15 @@ class G1AmpFlatEnvCfg(G1AmpRoughEnvCfg):
             body_names=["(?!.*ankle.*).*"],  # exclude ankle links
         )
         
+        self.rewards.stand_still.weight = -0.5
+        
         # ------------------------------------------------------
         # Commands
         # ------------------------------------------------------
         self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
-        self.commands.base_velocity.ranges.lin_vel_y = (-0.2, 0.2)
+        self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.heading = (-math.pi, math.pi)
         
 
 @configclass
@@ -97,7 +100,7 @@ class G1AmpFlatEnvCfg_PLAY(G1AmpFlatEnvCfg):
 
         self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.2, 0.2)
-        self.commands.base_velocity.ranges.ang_vel_z = (-0.5, 0.5)
+        self.commands.base_velocity.ranges.ang_vel_z = (-0.2, 0.2)
         self.commands.base_velocity.ranges.heading = (0.0, 0.0)
         self.commands.base_velocity.heading_command = True
         # disable randomization for play

@@ -51,7 +51,7 @@ class G1RoughRslRlOnPolicyRunnerAmpCfg(RslRlOnPolicyRunnerCfg):
             amp_discriminator=RslRlAmpCfg.AMPDiscriminatorCfg(
                 hidden_dims=[1024, 512],
                 activation="elu",
-                amp_reward_scale=2.0,
+                amp_reward_scale=5.0,
                 task_reward_lerp=0.1
             ),
             motion_dataset = "dataset" # match the term name in amp_env_cfg
