@@ -22,7 +22,7 @@ origin  https://github.com/lilin-jjj/legged_lab (fetch)
 origin  https://github.com/lilin-jjj/legged_lab (push)
 
 cd /home/ymzz-tec/code/legged_lab && git status
-
+cd /home/ymzz-tec/code/legged_lab && git add . && git commit -m "Update codebase with local modifications"
 
 3. 运行脚本：
    ```bash
