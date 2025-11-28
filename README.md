@@ -89,7 +89,11 @@ gdown "https://drive.google.com/drive/folders/1tXtyjgM_wwqWNwnpn8ny5b4q1c-GxZkm?
 - Verify that the extension is correctly installed by running the following command:
 
 ```bash
-python scripts/rsl_rl/train.py --task=LeggedLab-Isaac-Velocity-Rough-G1-v0 --headless
+python scripts/rsl_rl/train.py --task=LeggedLab-Isaac-Velocity-Rough-G1-v0 --headless --num_envs 2048 --resume --load_run 2025-11-26_09-16-35 --checkpoint model_5400
+python /home/ymzz-tec/code/legged_lab/scripts/rsl_rl/train_g1_depth.py   --task=LeggedLab-Isaac-Velocity-Rough-G1-Depth-v0   --headless   --num_envs 64   --enable_cameras --max_iterations 130000 --resume --load_run 2025-11-26_15-09-14 --checkpoint model_5100
+
+python scripts/rsl_rl/play.py --task LeggedLab-Isaac-Velocity-Rough-G1-Play-v0 --num_envs 64
+
 ```
 
 ## Train
@@ -99,7 +103,7 @@ python scripts/rsl_rl/train.py --task=LeggedLab-Isaac-Velocity-Rough-G1-v0 --hea
 To train the reinforcement learning for Unitree G1, you can run the following command:
 
 ```bash
-python scripts/rsl_rl/train.py --task=LeggedLab-Isaac-Velocity-Rough-G1-v0 --headless
+
 ```
 
 For more details about the arguments, run `python scripts/rsl_rl/train.py -h`. -->

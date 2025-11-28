@@ -29,6 +29,8 @@ def terrain_out_of_bounds(
     If the actor moves too close to the edge of the terrain, the termination is activated. The distance
     to the edge of the terrain is calculated based on the size of the terrain and the distance buffer.
     """
+    # 说明：当使用 generator 类型的地形（非平面）时，环境会生成由多个子地形拼接的网格地图。
+    # 该函数通过地形生成器的配置（size、num_rows、num_cols）计算整个地图大小，判断机器人的位置是否越界。
     if env.scene.cfg.terrain.terrain_type == "plane":
         return False  # we have infinite terrain because it is a plane
     elif env.scene.cfg.terrain.terrain_type == "generator":

@@ -1,11 +1,6 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
-"""Script to train RL agent with RSL-RL."""
-
-"""Launch Isaac Sim Simulator first."""
+# Depth-camera variant training entry for G1 rough environment.
+# Logic is identical to train.py; use with task id
+#   LeggedLab-Isaac-Velocity-Rough-G1-Depth-v0
 
 import argparse
 import sys
@@ -16,7 +11,7 @@ from isaaclab.app import AppLauncher
 import cli_args  # isort: skip
 
 # add argparse arguments
-parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
+parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL (G1 depth-camera variant).")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
 parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
 parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
@@ -37,24 +32,6 @@ cli_args.add_rsl_rl_args(parser)
 AppLauncher.add_app_launcher_args(parser)
 args_cli, hydra_args = parser.parse_known_args()
 
-# -- 中文说明 -----------------------------------------------------------------
-# 这个脚本是训练的入口。执行 `python scripts/rsl_rl/train.py --task=...` 会执行以下高层流程：
-# 1. 解析命令行参数（上面 parser 定义）。
-# 2. 使用 AppLauncher 启动/连接到 Isaac Sim 应用（`app_launcher = AppLauncher(args_cli)`），
-#    这一步负责初始化模拟器、渲染窗口和基础插件。随后会通过 `hydra_task_config`
-#    装饰器在 `main` 函数中注入任务（task）和 agent 的配置对象。
-# 3. 在 `main` 中使用 `gym.make(args_cli.task, cfg=env_cfg)` 创建环境实例；
-#    对于本仓库的任务（例如 LeggedLab-Isaac-Velocity-Rough-G1-v0），
-#    `gym` 会把该 id 映射到 `isaaclab.envs:ManagerBasedRLEnv`，并使用任务对应的
-#    env_cfg（例如 G1RoughEnvCfg）来构建场景（Scene）、传感器（Sensors）、资产（Assets）等。
-# 4. 环境构建完成后会被 `RslRlVecEnvWrapper` 包装，使其符合 rsl-rl 的并行环境接口。
-# 5. 根据 agent 配置构建对应的 runner（如 OnPolicyRunner/DistillationRunner/AMPRunner），
-#    然后调用 `runner.learn(...)` 启动训练循环。
-#
-# 下面对代码中关键处（环境构建、传感器使用、reward/termination/observation 回调等）
-# 我会在各自的源文件中加入中文注释，帮助理解执行流程与传感器数据的具体含义。
-# -----------------------------------------------------------------------------
-
 # always enable cameras to record video
 if args_cli.video:
     args_cli.enable_cameras = True
@@ -66,8 +43,6 @@ sys.argv = [sys.argv[0]] + hydra_args
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
-"""Check for minimum supported RSL-RL version."""
-
 import importlib.metadata as metadata
 import platform
 
@@ -78,7 +53,7 @@ RSL_RL_VERSION = "3.1.1"
 installed_version = metadata.version("rsl-rl-lib")
 if version.parse(installed_version) < version.parse(RSL_RL_VERSION):
     if platform.system() == "Windows":
-        cmd = [r".\isaaclab.bat", "-p", "-m", "pip", "install", f"rsl-rl-lib=={RSL_RL_VERSION}"]
+        cmd = [r".\\isaaclab.bat", "-p", "-m", "pip", "install", f"rsl-rl-lib=={RSL_RL_VERSION}"]
     else:
         cmd = ["./isaaclab.sh", "-p", "-m", "pip", "install", f"rsl-rl-lib=={RSL_RL_VERSION}"]
     print(
@@ -87,8 +62,6 @@ if version.parse(installed_version) < version.parse(RSL_RL_VERSION):
         f"\n\n\t{' '.join(cmd)}\n"
     )
     exit(1)
-
-"""Rest everything follows."""
 
 import gymnasium as gym
 import os
@@ -127,7 +100,7 @@ torch.backends.cudnn.benchmark = False
 
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
-    """Train with RSL-RL agent."""
+    """Train with RSL-RL agent (G1 depth-camera variant)."""
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
@@ -136,7 +109,6 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     )
 
     # set the environment seed
-    # note: certain randomizations occur in the environment initialization so we set the seed here
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
 
@@ -156,7 +128,6 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     print(f"[INFO] Logging experiment in directory: {log_root_path}")
     # specify directory for logging runs: {time-stamp}_{run_name}
     log_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # The Ray Tune workflow extracts experiment name using the logging line below, hence, do not change it (see PR #2346, comment-2819298849)
     print(f"Exact experiment name requested from command line: {log_dir}")
     if agent_cfg.run_name:
         log_dir += f"_{agent_cfg.run_name}"
@@ -204,6 +175,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     elif agent_cfg.class_name == "AMPRunner":
         from rsl_rl.runners import AMPRunner
+
         runner = AMPRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     elif agent_cfg.class_name == "DistillationRunner":
         runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
@@ -220,8 +192,6 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
-    # dump_pickle(os.path.join(log_dir, "params", "env.pkl"), env_cfg)
-    # dump_pickle(os.path.join(log_dir, "params", "agent.pkl"), agent_cfg)
 
     # run training
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)

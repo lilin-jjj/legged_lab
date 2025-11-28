@@ -91,7 +91,7 @@ class MySceneCfg(InteractiveSceneCfg):
         offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         ray_alignment='yaw',
         pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-        debug_vis=False,
+        debug_vis=True,
         mesh_prim_paths=["/World/ground"],
     )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
@@ -175,6 +175,21 @@ class ObservationsCfg:
             noise=Unoise(n_min=-0.1, n_max=0.1),
             clip=(-1.0, 1.0),
         )
+
+        # -- 中文说明（关于传感器 height_scanner 与 contact_forces） -----------------
+        # height_scanner:
+        #   - 使用 RayCaster 或自定义的 RayCasterArray（在 ScandotsSceneCfg 中）对地面做高度扫描，
+        #     输出表示为每个射线击中的世界坐标点（ray_hits_w）和传感器所在位置（pos_w）。
+        #   - 在 observations 中，通过 mdp.height_scan / mdp.height_scan_ch 将这些射线命中点转为
+        #     相对高度值（通常为: sensor_height - hit_z - offset），并整理为网络可用的张量形状。
+        #   - 如果没有命中（例如超出扫描范围），ray_hits_w 的相关值也会体现出来，回调需做好异常处理。
+        # contact_forces:
+        #   - ContactSensorCfg 会把接触力/接触时间等信息提供给 env.scene.sensors["contact_forces"].
+        #   - 在 reward/termination/observation 回调中可以读取像 `data.net_forces_w_history`、
+        #     `data.last_air_time`、`data.current_contact_time` 等字段来计算脚步离地时间、滑移等指标。
+        #   - 这些字段的维度和排列方式与 sensors 的 body_ids 映射有关，通常通过 SceneEntityCfg
+        #     （例如 body_names=".*_ankle_roll_link"）来选择感兴趣的 body。
+        # -------------------------------------------------------------------------
 
         def __post_init__(self):
             self.history_length = 5

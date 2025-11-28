@@ -19,6 +19,14 @@ from legged_lab.assets.unitree import G1_27DOF_MINIMAL_CFG, G1_27DOF_CFG
 @configclass
 class G1Rewards():
     """Reward terms for the MDP."""
+    # -- 中文注释说明 -----------------------------------------------------------
+    # 这个类声明了用于 G1 任务的各个 reward term（通过 isaaclab.managers.RewardTermCfg）。
+    # 每个 RewTerm 会绑定到 `legged_lab/tasks/locomotion/velocity/mdp/rewards.py` 中的函数，
+    # 这些函数在训练循环中被调用以计算批量环境的奖励值（返回 shape 为 [num_envs] 的张量）。
+    # RewTerm 的 params 可以包含 SceneEntityCfg，用于告诉回调函数读取哪个传感器或哪个 body 的数据，
+    # 例如 `SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link")` 表示使用 contact_forces 传感器
+    # 中与脚踝相关的 body id 来计算 feet_slide 等 reward。
+    # -------------------------------------------------------------------------
     # -- Task
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_yaw_frame_exp,
@@ -166,6 +174,7 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         }
         
         # Rewards
+        self.rewards.base_height.weight = 0.0
         self.rewards.lin_vel_z_l2.weight = 0.0
         self.rewards.flat_orientation_l2.weight = -1.0
         self.rewards.action_rate_l2.weight = -0.005

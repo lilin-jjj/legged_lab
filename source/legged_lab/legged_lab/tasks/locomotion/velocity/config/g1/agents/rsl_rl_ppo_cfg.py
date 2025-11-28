@@ -11,7 +11,7 @@ from legged_lab.rsl_rl import RslRlPpoActorCriticConv2dCfg
 @configclass
 class G1RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
-    max_iterations = 3000
+    max_iterations = 10000
     save_interval = 100
     experiment_name = "g1_rough"
     empirical_normalization = False
@@ -66,5 +66,5 @@ class G1ScandotsRoughPPORunnerCfg(G1RoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 3000
+        self.max_iterations = 10000
         self.experiment_name = "g1_scandots_rough"

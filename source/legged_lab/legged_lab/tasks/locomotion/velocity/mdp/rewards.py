@@ -35,6 +35,11 @@ def feet_air_time(
     If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
     """
     # extract the used quantities (to enable type-hinting)
+    # contact_sensor 是由 Scene 中注册的 ContactSensor 实例，通过 SceneEntityCfg 的 name 查找。
+    # ContactSensor 提供了多种记录字段，例如:
+    #  - data.last_air_time: 上一次离地的累计时间
+    #  - data.current_air_time/current_contact_time: 当前步长的离地/接触持续时间
+    #  - data.net_forces_w_history: 在世界坐标系下的接触力历史
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
     first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
@@ -53,6 +58,7 @@ def feet_air_time_positive_biped(env, command_name: str, threshold: float, senso
 
     If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
     """
+    # 联系传感器的说明见上方注释（feet_air_time）。对双足行走需要判断单脚支撑时长。
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
     air_time = contact_sensor.data.current_air_time[:, sensor_cfg.body_ids]
@@ -75,6 +81,9 @@ def feet_slide(env, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg = Scen
     agent is penalized only when the feet are in contact with the ground.
     """
     # Penalize feet sliding
+    # contact_sensor.data.net_forces_w_history 的张量维度通常为
+    # (num_envs, history_length, num_bodies, 3)，表示在世界坐标系下每个 body 在历史步骤中的接触力向量。
+    # 这里通过 norm(dim=-1).max(dim=1)[0] 获取历史中每个 body 的最大接触力幅值，并与阈值比较得到接触二值掩码。
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     contacts = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
     asset = env.scene[asset_cfg.name]
